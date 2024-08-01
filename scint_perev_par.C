@@ -62,11 +62,11 @@ void setup(std::string run_number){
   outfile.close();
 }
 
-int main(int argc, char * argv[]){
+void scint_perev_par(double ar_percent, std::string run_number, int setup_flag){
 
-  double ar_percent = atof(argv[1]);
+  /*double ar_percent = atof(argv[1]);
   std::string run_number{argv[3]};
-  int setup_flag = atoi(argv[2]);
+  int setup_flag = atoi(argv[2]);*/
   //run setup if "1" is passed as 2nd argument
   if (setup_flag==1){
     setup(run_number);
