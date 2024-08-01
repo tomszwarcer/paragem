@@ -1,0 +1,15 @@
+Universe = vanilla
+
+executable              = run_root.sh
+log                     = batch_gem.log
+output                  = batch_gem.out
+error                   = batch_gem.err
+
+arguments = $(ARP) $(RN)
+
+getenv = True
+
+transfer_output_files = $Fn(RN).csv
+transfer_output_remaps = "$Fn(RN).csv = /opt/ppd/scratch/szwarcer/paragem/paragem/output/$Fn(RN).csv"
+
+queue ARP,RN from all_runs.txt

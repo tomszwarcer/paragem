@@ -16,3 +16,4 @@ __pycache__/
 testing.py
 media
 build/*
+all_runs.txt

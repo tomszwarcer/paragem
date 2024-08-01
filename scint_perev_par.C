@@ -75,6 +75,7 @@ void scint_perev_par(double ar_percent, int rn){
   std::string mapDir = "";
   //The path must end in a "/"
   mapDir += "/opt/ppd/scratch/szwarcer/elmertest/GEM7/";
+  //mapDir += "/Users/tomszwarcer/Documents/MIGDAL/GEM7/";
 
   fm.Initialise(mapDir + "mesh.header",
                 mapDir + "mesh.elements",
@@ -106,7 +107,7 @@ void scint_perev_par(double ar_percent, int rn){
   int ne,ni;
 
   // How many events we want to run for each composition
-  constexpr unsigned int nEvents = 3;
+  constexpr unsigned int nEvents = 25;
 
   //starting positions 
   double x0 = 0;
