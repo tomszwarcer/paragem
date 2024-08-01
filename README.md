@@ -1,8 +1,8 @@
+This program should be run as a root macro:
+
 ```
-source $GARFIELD_HOME/build/setupGarfield.sh
-mkdir build
-cd build
-cmake ..
-make
-./scint_perev_par 
+source run_root.sh
 ```
+
+First argument: Ar % (double)
+Second argument: run number (string, use double quotes)

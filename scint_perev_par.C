@@ -35,10 +35,10 @@ struct Level{
 
 void write_levels(std::vector<Level>& level_list, std::string run_number){
   std::ofstream outfile;
-  outfile.open(run_number + ".txt",std::ios_base::app);
+  outfile.open(run_number + ".txt");
   for (Level to_write:level_list){
     std::string id = std::to_string(to_write.gas_index) + std::to_string(to_write.type) + std::to_string(to_write.energy);
-    outfile << to_write.ar_percent << "|" << to_write.gas_index << "|" << to_write.type << "|" << to_write.descr << "|" << to_write.energy << "|" << to_write.ratio << "|" << id << std::endl;
+    outfile << to_write.ar_percent << "," << to_write.gas_index << "," << to_write.type << "," << to_write.descr << "," << to_write.energy << "," << to_write.ratio << "," << id << std::endl;
   }
   outfile.close();
 }
@@ -55,22 +55,7 @@ double dx1, double dy1, double dz1){
   deposited += (e0-e1);
 }
 
-void setup(std::string run_number){
-  std::ofstream outfile;
-  outfile.open(run_number + ".txt");
-  outfile << "Ar %|gas index|type|description|energy|ratio (for this Ar %)|level id" << std::endl;
-  outfile.close();
-}
-
-void scint_perev_par(double ar_percent, std::string run_number, int setup_flag){
-
-  /*double ar_percent = atof(argv[1]);
-  std::string run_number{argv[3]};
-  int setup_flag = atoi(argv[2]);*/
-  //run setup if "1" is passed as 2nd argument
-  if (setup_flag==1){
-    setup(run_number);
-  }
+void scint_perev_par(double ar_percent, std::string run_number){
 
   //Create MM object for gas and set it up
   MediumMagboltz gas;
