@@ -57,7 +57,7 @@ double dx1, double dy1, double dz1){
 
 void scint_perev_par(double ar_percent, int rn){
 
-  std::string run_number {rn};
+  std::string run_number = itoa(rn);
 
   //Create MM object for gas and set it up
   MediumMagboltz gas;
