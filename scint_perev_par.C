@@ -55,7 +55,9 @@ double dx1, double dy1, double dz1){
   deposited += (e0-e1);
 }
 
-void scint_perev_par(double ar_percent, std::string run_number){
+void scint_perev_par(double ar_percent, int rn){
+
+  std::string run_number {rn};
 
   //Create MM object for gas and set it up
   MediumMagboltz gas;
@@ -72,7 +74,7 @@ void scint_perev_par(double ar_percent, std::string run_number){
 
   std::string mapDir = "";
   //The path must end in a "/"
-  mapDir += "/Users/tomszwarcer/Documents/MIGDAL/GEM7/";
+  mapDir += "/opt/ppd/scratch/szwarcer/elmertest/GEM7/";
 
   fm.Initialise(mapDir + "mesh.header",
                 mapDir + "mesh.elements",
