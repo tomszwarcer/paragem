@@ -17,3 +17,4 @@ testing.py
 media
 build/*
 all_runs.txt
+scint_perev_par.C

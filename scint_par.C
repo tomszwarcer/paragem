@@ -19,43 +19,43 @@ struct Level{
   int gas_index;
   int type;
   std::string descr;
-  long double ratio;
+  unsigned int num_colls;
   double ar_percent;
+  unsigned int anode_counter;
   std::string id;
-  Level(double e, int g_i, int t, std::string d, long double r, double f){
+  Level(double e, int g_i, int t, std::string d, unsigned int n, double f, unsigned int a_c){
     energy = e;
     gas_index = g_i;
     type = t;
     descr = d;
-    ratio = r;
+    num_colls = n;
     ar_percent = f;
+    anode_counter = a_c;
     id = std::to_string(g_i) + std::to_string(t) + std::to_string(e);
   }
 };
 
 void write_levels(std::vector<Level>& level_list, std::string run_number){
   std::ofstream outfile;
-  outfile.open(run_number + ".txt");
+  outfile.open("/opt/ppd/scratch/szwarcer/paragem/output/" + run_number + ".csv");
   for (Level to_write:level_list){
     std::string id = std::to_string(to_write.gas_index) + std::to_string(to_write.type) + std::to_string(to_write.energy);
-    outfile << to_write.ar_percent << "," << to_write.gas_index << "," << to_write.type << "," << to_write.descr << "," << to_write.energy << "," << to_write.ratio << "," << id << std::endl;
+    outfile << to_write.ar_percent << "," << to_write.gas_index << "," << to_write.type << "," << to_write.descr << "," << to_write.energy << "," << to_write.num_colls << "," << id << "," << to_write.anode_counter << std::endl;
   }
   outfile.close();
 }
   
-double deposited = 0;
-std::vector<double> ratio_list(200);
+std::vector<double> colls_list(200);
 
 void userHandle(double x, double y, double z, double t,
 int type, int level, Medium* m,
 double e0, double e1,
 double dx0, double dy0, double dz0,
 double dx1, double dy1, double dz1){
-  ++ratio_list[level];
-  deposited += (e0-e1);
+  ++colls_list[level];
 }
 
-void scint_perev_par(double ar_percent, int rn){
+void scint_par(double ar_percent, int rn){
 
   std::string run_number = std::to_string(rn);
 
@@ -93,7 +93,7 @@ void scint_perev_par(double ar_percent, int rn){
   const double pitch = 0.0280;
   const double hole_radius = 0.017/2.;
   const double height = sqrt(3)*pitch;
-  const double view_min_z = -0.03;
+  const double view_min_z = -0.2;
 
   //this is the region electrons are tracked in
   Sensor sensor;
@@ -105,6 +105,7 @@ void scint_perev_par(double ar_percent, int rn){
   aval.SetSensor(&sensor);
   aval.SetUserHandleCollision(userHandle);
   int ne,ni;
+  unsigned int anode_counter = 0;
 
   // How many events we want to run for each composition
   constexpr unsigned int nEvents = 25;
@@ -127,8 +128,8 @@ void scint_perev_par(double ar_percent, int rn){
   // Loop for events
   for (unsigned int i = 0; i < nEvents; ++i){
 
-    std::vector<double> ratio_list_backup = ratio_list;
-    double deposited_backup = deposited;
+    //set backup to restore to if avalanche is rejected
+    std::vector<double> colls_list_backup = colls_list;
     
     //generate avalanche
     aval.AvalancheElectron(x0, y0, z0, t0, e0, 0., 0., 0.);
@@ -136,8 +137,12 @@ void scint_perev_par(double ar_percent, int rn){
     std::cout << "Event " << i + 1 << " of " << nEvents << " (" << ne << ")" << std::endl;
     if (ne <= 100){
       std::cout << "rejected event " << i+1 << std::endl;
-      ratio_list = ratio_list_backup;
-      deposited = deposited_backup;
+      colls_list = colls_list_backup;
+    }
+    for (const auto& electron : aval.GetElectrons()){
+      if (electron.path.back().z <= view_min_z + 0.001){
+        anode_counter += 1;
+      }
     }
   }
 
@@ -145,7 +150,7 @@ void scint_perev_par(double ar_percent, int rn){
   unsigned int num_levels = gas.GetNumberOfLevels();
   for (int level_index=0;level_index<num_levels;++level_index){
     gas.GetLevel(level_index,ngas,type,descr,e);
-    long double ratio = ratio_list[level_index]/deposited;
+    unsigned int num_colls = colls_list[level_index];
     if (ar_percent >= 99.99){
       ngas = 1;
     }
@@ -153,7 +158,7 @@ void scint_perev_par(double ar_percent, int rn){
       ngas = 0;
     }
 
-    Level new_level(e,ngas,type,descr,ratio, ar_percent);
+    Level new_level(e,ngas,type,descr,num_colls, ar_percent, anode_counter);
     
     //format the description to remove redundant info
     std::string substr1 = "ELOSS";
