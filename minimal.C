@@ -45,17 +45,24 @@ void write_levels(std::vector<Level>& level_list, std::string run_number){
   outfile.close();
 }
   
-std::vector<double> colls_list(200);
+std::vector<double> colls_list(2);
+std::vector<double> tracked_energies = {12.5,12.907};
+std::vector<int> tracked_levels(2);
 
 void userHandle(double x, double y, double z, double t,
 int type, int level, Medium* m,
 double e0, double e1,
 double dx0, double dy0, double dz0,
 double dx1, double dy1, double dz1){
-  ++colls_list[level];
+  if (level == tracked_levels[0]){
+    ++colls_list[0];
+  }
+  else if (level == tracked_levels[1]){
+    ++colls_list[1];
+  }
 }
 
-void scint_par(double ar_percent, int rn){
+void minimal(double ar_percent, int rn){
 
   std::string run_number = std::to_string(rn);
 
@@ -74,7 +81,7 @@ void scint_par(double ar_percent, int rn){
 
   std::string mapDir = "";
   //The path must end in a "/"
-  mapDir += "/opt/ppd/scratch/szwarcer/elmertest/GEM7/";
+  mapDir += "/opt/ppd/scratch/szwarcer/paragem/Gmsh/dGem/";
   //mapDir += "/Users/tomszwarcer/Documents/MIGDAL/GEM7/";
 
   fm.Initialise(mapDir + "mesh.header",
@@ -98,47 +105,49 @@ void scint_par(double ar_percent, int rn){
   //this is the region electrons are tracked in
   Sensor sensor;
   sensor.AddComponent(&fm);
-  sensor.SetArea(-3*pitch, -3*pitch, view_min_z, 3*pitch, 3*pitch, 0.08);
+  sensor.SetArea(-3*pitch, -3*pitch, view_min_z, 3*pitch, 3*pitch, 0.4);
 
   //Set up the microscopic avalanche
   AvalancheMicroscopic aval;
   aval.SetSensor(&sensor);
   aval.SetUserHandleCollision(userHandle);
+  aval.EnableAvalancheSizeLimit(10000);
   int ne,ni;
   unsigned int anode_counter = 0;
 
   // How many events we want to run for each composition
-  constexpr unsigned int nEvents = 25;
+  constexpr unsigned int nEvents = 1;
 
   //starting positions 
   double x0 = 0;
   double y0 = 0;
-  const double z0 = 0.07;
+  const double z0 = 0.32;
   const double t0 = 0.;
   const double e0 = 0.1;
 
   std::vector<Level> level_list;
-
-  //used in GetLevel
   int ngas;
   int type;
   std::string descr;
   double e;
+  unsigned int num_levels = gas.GetNumberOfLevels();    
+  for (int level_index=0;level_index<num_levels;++level_index){
+    gas.GetLevel(level_index,ngas,type,descr,e);
+    if (e <= tracked_energies[0] + 0.0001 and e >= tracked_energies[0] - 0.0001){
+      tracked_levels[0] = level_index;
+    }
+    else if (e <= tracked_energies[1] + 0.0001 and e >= tracked_energies[1] - 0.0001){
+      tracked_levels[1] = level_index;
+    }
+  }
+  std::cout << "Tracking levels " <<  tracked_levels[0] << ", " << tracked_levels[1] << std::endl;;
 
   // Loop for events
   for (unsigned int i = 0; i < nEvents; ++i){
-
-    //set backup to restore to if avalanche is rejected
-    std::vector<double> colls_list_backup = colls_list;
     
     //generate avalanche
     aval.AvalancheElectron(x0, y0, z0, t0, e0, 0., 0., 0.);
-    aval.GetAvalancheSize(ne, ni);
-    std::cout << "Event " << i + 1 << " of " << nEvents << " (" << ne << ")" << std::endl;
-    if (ne <= 100){
-      std::cout << "rejected event " << i+1 << std::endl;
-      colls_list = colls_list_backup;
-    }
+    std::cout << "Event " << i + 1 << " of " << nEvents << std::endl;
     for (const auto& electron : aval.GetElectrons()){
       if (electron.path.back().z <= view_min_z + 0.001){
         anode_counter += 1;
@@ -147,10 +156,9 @@ void scint_par(double ar_percent, int rn){
   }
 
   //collate level info
-  unsigned int num_levels = gas.GetNumberOfLevels();
-  for (int level_index=0;level_index<num_levels;++level_index){
-    gas.GetLevel(level_index,ngas,type,descr,e);
-    unsigned int num_colls = colls_list[level_index];
+  for (int k=0;k<2;++k){
+    gas.GetLevel(tracked_levels[k],ngas,type,descr,e);
+    unsigned int num_colls = colls_list[k];
     if (ar_percent >= 99.99){
       ngas = 1;
     }

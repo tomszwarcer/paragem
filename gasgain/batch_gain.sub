@@ -1,0 +1,12 @@
+Universe = vanilla
+
+executable              = run_root.sh
+log                     = batch_gem.log
+output                  = batch_gem.out
+error                   = batch_gem.err
+
+arguments = $(ARP) $(RN)
+
+getenv = True
+
+queue ARP,RN from all_runs.txt

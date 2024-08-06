@@ -1,7 +1,7 @@
 SetFactory("OpenCASCADE");
 // Define some constants
 t = 0.57;//thickness
-ct = 0.02;//cladding thickness
+ct = 0.002;//cladding thickness
 r = 0.17/2;//radius
 p = 0.28;//pitch
 dl = 2.0;//drift length

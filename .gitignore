@@ -18,3 +18,5 @@ media
 build/*
 all_runs.txt
 scint_perev_par.C
+scint_par_vis.C
+scint_par.C
